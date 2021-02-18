@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy import fftpack
 import math
-
+import os
 #%%
 '''
 File Read into script
@@ -52,7 +52,7 @@ min_val = df.min(axis = 0)                    # min values
 #Include time stamps
 sampling_freq = 256 #Hz
 t_per_meas = 1/256
-run_time = 360 #seconds
+run_time = 360#4097#360 #seconds
 no_of_meas = int(run_time / t_per_meas)
 # create time array
 t = np.linspace(0, run_time, no_of_meas)
@@ -67,6 +67,7 @@ Spectral Analysis using Welch Method.
 Comparison to be made with FFT
 '''
 path_welch = 'Documents/Github/Thesis_Tidal_Turbine/Results/Welch_Transform/'
+os.makedirs(path_welch)
 for column in df:
     f, spectrum = signal.welch(df[column], fs = 256, window='hamm', noverlap=64)
     plt.plot(f, spectrum)
@@ -77,6 +78,7 @@ for column in df:
     plt.close()
 
 path_fft = 'Documents/Github/Thesis_Tidal_Turbine/Results/fft/'
+os.makedirs(path_fft)
 freq_fft = np.linspace(0, 128, sampling_freq)
 for  column in df:
     spectrum = fftpack.fft(df[column].to_numpy(), sampling_freq)
@@ -87,18 +89,112 @@ for  column in df:
     plt.title(column)
     plt.close()
 
-rolling_mean = df.rolling(5*sampling_freq).mean()
-rolling_max = df.rolling(5*sampling_freq).max()
-rolling_min = df.rolling(5*sampling_freq).min()
-rolling_std = df.rolling(5*sampling_freq).std()
+# %%
+rolling_mean = df.rolling(10*sampling_freq).mean()
+rolling_rolling_mean = rolling_mean.rolling(7).std()
+
+rolling_max = df.rolling(10*sampling_freq).max()
+rolling_rolling_max = rolling_max.rolling(7).std()
 
 
-plt.plot(rolling_std['Thrust'])
-path_rolling = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/'
+rolling_min = df.rolling(10*sampling_freq).min()
+rolling_rolling_min = rolling_min.rolling(7).std()
+
+rolling_std = df.rolling(10*sampling_freq).std()
+rolling_rolling_std = rolling_std.rolling(7).std()
+
+path_rolling_mean = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Mean/' 
+os.makedirs(path_rolling_mean)
+
+path_rolling_max = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Max/'
+os.makedirs(path_rolling_max)
+
+path_rolling_min = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Min/' 
+os.makedirs(path_rolling_min)
+
+path_rolling_std = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Std/'
+os.makedirs(path_rolling_std)
+    
 for column in df:
-    path_rolling = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/' + column + '/'
-    plt.plot()
+    plt.plot(rolling_rolling_mean[column])
+    plt.savefig(path_rolling_mean+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+    plt.plot(rolling_rolling_max[column])
+    plt.savefig(path_rolling_max+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+    plt.plot(rolling_rolling_min[column])
+    plt.savefig(path_rolling_min+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+    plt.plot(rolling_rolling_std[column])
+    plt.savefig(path_rolling_std+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+# %%
+rolling_mean = df.rolling(10*sampling_freq).mean()
 
-spectrum = fftpack.fft(df['Thrust'].to_numpy(), 256)
 
-plt.plot(abs(spectrum))
+rolling_max = df.rolling(10*sampling_freq).max()
+
+
+rolling_min = df.rolling(10*sampling_freq).min()
+
+
+rolling_std = df.rolling(10*sampling_freq).std()
+
+
+path_rolling_mean = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Mean/' 
+os.makedirs(path_rolling_mean)
+
+path_rolling_max = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Max/'
+os.makedirs(path_rolling_max)
+
+path_rolling_min = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Min/' 
+os.makedirs(path_rolling_min)
+
+path_rolling_std = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Std/'
+os.makedirs(path_rolling_std)
+    
+plt.plot(rolling_mean['Thrust'][1000:2000])
+for column in df:
+    plt.plot(rolling_mean[column])
+    plt.savefig(path_rolling_mean+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+    plt.plot(rolling_max[column])
+    plt.savefig(path_rolling_max+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+    plt.plot(rolling_min[column])
+    plt.savefig(path_rolling_min+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
+    
+    plt.plot(rolling_std[column])
+    plt.savefig(path_rolling_std+column+'.png')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Amplitude')
+    plt.title(column)
+    plt.close()
