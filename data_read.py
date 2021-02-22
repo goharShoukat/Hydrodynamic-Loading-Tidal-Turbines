@@ -54,13 +54,22 @@ sampling_freq = 256 #Hz
 t_per_meas = 1/256
 run_time = 360#4097#360 #seconds
 no_of_meas = int(run_time / t_per_meas)
-# create time array
+# create time arra
 t = np.linspace(0, run_time, no_of_meas)
 #first add column to the data framce
 df['time'] = t
 #rename index to time values
 df = df.set_index('time')
 
+# %% Spectral Analysis
+frequency = np.linspace(0, int(sampling_freq/2), int(no_of_meas/2))
+
+freq_data = fftpack.fft(df['Thrust'].to_numpy())
+y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
+y[0] = y[0] / 2
+plt.plot(frequency, np.log10(y))
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
 # %%
 '''
 Spectral Analysis using Welch Method. 
