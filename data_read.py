@@ -14,6 +14,7 @@ from scipy import fftpack
 import math
 import os
 import pickle
+import plotting
 #%%
 '''
 File Read into script
@@ -25,9 +26,11 @@ Initial Plots
 #The data file was cleaned to remove the first couple of lines. 
 path = 'Documents/Github/Thesis_Tidal_Turbine/Prior_Data_Papers/'
 df = pd.read_csv(path+'run007.txt', sep = '\t', skiprows=9)
+units = df.iloc[0]
 df = df.drop([0])
 #renaming first column header
 df = df.rename({'#RPM': 'RPM'}, axis=1)
+
 #all column heads are stored to recreate proper columns
 col_head = list(df.columns)
 #the data series is throwing an exception that the data is not numeric
@@ -101,7 +104,24 @@ for column in df:
     plt.title(column)
     plt.close()
 '''
+# %% Rolling Averages
+#create new data frame that holds the rolling mean for each property
+df_rolling_average = pd.DataFrame(index = df.index)
+avg = rolling_average(df, 'RPM')
+
+#calcullate 
+for column in df.columns:
+    avg = rolling_average(df, column)
+    df_rolling_average[column] = avg
+    
+path_rolling_mean = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Mean/' 
+os.makedirs(path_rolling_mean)
+
+
+
 # %%
+    
+plt.plot(avg)
 rolling_mean = df.rolling(10*sampling_freq).mean()
 rolling_rolling_mean = rolling_mean.rolling(7).std()
 
