@@ -13,6 +13,7 @@ from scipy import signal
 from scipy import fftpack
 import math
 import os
+import pickle
 #%%
 '''
 File Read into script
@@ -62,18 +63,32 @@ df['time'] = t
 df = df.set_index('time')
 
 # %% Spectral Analysis
+
+path_fft = 'Documents/Github/Thesis_Tidal_Turbine/Results/fft/'
+os.makedirs(path_fft)
 frequency = np.linspace(0, int(sampling_freq/2), int(no_of_meas/2))
 
-freq_data = fftpack.fft(df['Thrust'].to_numpy())
-y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
-y[0] = y[0] / 2
-plt.plot(frequency, np.log10(y))
-plt.xlabel('Frequency')
-plt.ylabel('Amplitude')
+for  column in df:
+    if column == 'RPM':
+        pass
+    else:
+        freq_data = fftpack.fft(df[column].to_numpy())
+        y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
+        y[0] = y[0] / 2
+        fig = plt.plot(frequency, y)
+        plt.yscale('log')
+        plt.xlabel('Frequency [Hz]')
+        plt.ylabel('Amplitude')
+        plt.title(column)
+        plt.grid(True, which = 'both', linestyle='--')
+        plt.savefig(path_fft+column+'.png')
+        pickle.dump(fig, open(path_fft+column + 'fig.pickle','wb'))
+        plt.close()
 # %%
 '''
 Spectral Analysis using Welch Method. 
 Comparison to be made with FFT
+'''
 '''
 path_welch = 'Documents/Github/Thesis_Tidal_Turbine/Results/Welch_Transform/'
 os.makedirs(path_welch)
@@ -85,19 +100,7 @@ for column in df:
     plt.ylabel('Amplitude')
     plt.title(column)
     plt.close()
-
-path_fft = 'Documents/Github/Thesis_Tidal_Turbine/Results/fft/'
-os.makedirs(path_fft)
-freq_fft = np.linspace(0, 128, sampling_freq)
-for  column in df:
-    spectrum = fftpack.fft(df[column].to_numpy(), sampling_freq)
-    plt.plot(freq_fft, abs(spectrum))
-    plt.savefig(path_fft+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-
+'''
 # %%
 rolling_mean = df.rolling(10*sampling_freq).mean()
 rolling_rolling_mean = rolling_mean.rolling(7).std()
