@@ -26,34 +26,30 @@ def rolling_max(df, column_name):
     if not isinstance(column_name, str):
         raise TypeError
     arr = df[column_name].to_numpy()
-    stat = []
-    max_val = []
-    for i in range(0, len(arr)):
-        stat = np.append(stat, arr[i])
-        max_val = np.append(max_val,max(stat))
-    return max_val
+    stat = []   
+    stat = np.append(stat, arr[0])
+
+    for i in range(1, len(arr)):
+        if stat[i-1] > arr[i]:
+            stat = np.append(stat, stat[i-1])
+        else:
+            stat = np.append(stat, arr[i])
+    return stat
  
+
+
 def rolling_min(df, column_name):
     if not isinstance(column_name, str):
         raise TypeError
     arr = df[column_name].to_numpy()
-    stat = []
-    min_val = []
-    for i in range(0, len(arr)):
-        stat = np.append(stat, arr[i])
-        min_val = np.append(min_val,min(stat))
-    return min_val
+    stat = []   
+    stat = np.append(stat, arr[0])
 
-def rolling_std(df, column_name):
-    if not isinstance(column_name, str):
-        raise TypeError
-    arr = df[column_name].to_numpy()
-    stat = []
-    stat = np.append(stat, np.std(arr[0]))
-    
-    for i in range(1,len(arr)):
-        var = (arr[i] + stat[i - 1] * (len(stat)))/(i+1)
-        stat = np.append(stat, var)
+    for i in range(1, len(arr)):
+        if stat[i-1] < arr[i]:
+            stat = np.append(stat, stat[i-1])
+        else:
+            stat = np.append(stat, arr[i])
     return stat
         
 def plot_rolling_props(df, units, path, prop):
