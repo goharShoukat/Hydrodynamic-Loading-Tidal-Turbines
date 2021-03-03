@@ -26,7 +26,7 @@ def rolling_average(df, column_name: str, value_skip, normalization=False):
     if normalization == True:
         mean = np.mean(arr)
         stat_norm = stat/mean
-        return stat_norm
+        return stat_norm, stat
     else:
         return stat
 
@@ -54,7 +54,7 @@ def rolling_std(df, column_name, value_skip, normalization= False):
     if normalization==True:
         mean = np.mean(arr)
         stat_norm = stat/mean
-        return stat_norm
+        return stat_norm, stat
     else:
         return stat
         
