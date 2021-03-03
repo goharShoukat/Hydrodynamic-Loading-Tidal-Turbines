@@ -94,30 +94,94 @@ def rolling_min(df, column_name):
     
 
         
-def plot_rolling_props(df, units, path, prop):
-    if prop == 'mean':        
-        for column in df.columns:        
-            plt.plot(df.index, df[column])
-            plt.title(column)
-            plt.xlabel('time (s)')
-            plt.ylabel(r'$\mu$' + '(' + units[column]+ ')')
-            plt.grid()
-            plt.close()
+def plot_rolling_props(df, units, path, prop, df_norm = pd.DataFrame()):
+    #Function to plot and save the mean of each data stream
+    #if df_norm provided, then subfigures created. 
+    #otherwise figures will be created
+    #if the normalised data frame is passed, it should use the keyword for this
+    #function df_norm
+    
+
+    
+    if df_norm.empty:        
+        if prop == 'mean':        
+            for column in df.columns:        
+                plt.plot(df.index, df[column])
+                plt.title(column)
+                plt.xlabel('time (s)')
+                plt.ylabel(r'$\mu$' + '(' + units[column]+ ')')
+                plt.savefig(path + column + '.png')
+                plt.grid()
+                plt.close()
         
-    elif prop == 'max' or 'min':
-        for column in df.columns:        
-            plt.plot(df.index, df[column])
-            plt.title(column)
-            plt.xlabel('time (s)')
-            plt.ylabel(units[column])
-            plt.grid()
-            plt.savefig(path + column + '.png')
-            plt.close()
+        elif prop == 'max' or 'min':
+            for column in df.columns:        
+                plt.plot(df.index, df[column])
+                plt.title(column)
+                plt.xlabel('time (s)')
+                plt.ylabel(units[column])
+                plt.grid()
+                plt.savefig(path + column + '.png')
+                plt.close()
+        
+        else:
+            for column in df.columns:        
+                plt.plot(df.index, df[column])
+                plt.title(column)
+                plt.xlabel('time (s)')
+                plt.ylabel(r'$\sigma$' + '(' + units[column]+ ')')
+                plt.savefig(path + column + '.png')
+                plt.grid()
+                plt.close()
+    
     else:
-        for column in df.columns:        
-            plt.plot(df.index, df[column])
-            plt.title(column)
-            plt.xlabel('time (s)')
-            plt.ylabel(r'$\sigma$' + '(' + units[column]+ ')')
-            plt.grid()
-            plt.close()
+        if prop == 'mean':     
+            for column in df.columns:        
+                fig, (f1, f2) = plt.subplots(2,1, sharex = True)
+                f1.plot(df[column])
+                f2.plot(df_norm[column])
+                fig.suptitle(column)
+                f2.set_xlabel('time (s)')
+                f1.set_ylabel(r'$\mu$' + '(' + units[column]+ ')')
+                f2.set_ylabel(r'$\frac{\mu}{\mu}$')
+                f1.set_title('Non-Normalised')
+                f2.set_title('Normalised')
+                f1.grid()
+                f2.grid()
+                fig.savefig(path + column + '.png')
+                plt.close()
+                
+        elif prop == 'std':
+            for column in df.columns:
+                fig, (f1, f2) = plt.subplots(2,1,sharex = True)
+                fig.suptitle(df[column])
+                f1.plot(df[column])
+                f2.plot(df_norm[column])
+                f2.set_xlabel('Time [s]')
+                f1.set_title('Non-Normalised')
+                f2.set_title('Normalised')
+                f1.grid()
+                f2.grid()
+                f1.set_ylabel(r'$\sigma$' + '(' + units[column]+ ')')
+                f2.set_ylabel(r'$\frac{\sigma}{\mu}$')
+                fig.savefig(path + column + '.png')
+                fig.close()
+                
+            '''
+for column in df.columns:
+                        fig, (f1, f2) = plt.subplots(2, 1, sharex = True)
+                        f1.plot(df[column])
+                        f2.plot(df_norm[column])
+                        fig.suptitle(column)
+                        f2.set_xlabel('time (s)')
+                        f1.set_title('Non-Normalised')
+                        f2.set_title('Normalised')
+                        f1.grid()
+                        f2.grid()
+                        f1.set_ylabel(r'$\sigma$' + '(' + units[column]+ ')')
+                        f2.set_ylabel(r'$\frac{\sigma}{\mu}$')
+                        fig.savefig(path + column + '.png')
+                        fig.close()
+                    
+                
+                    '''
