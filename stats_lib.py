@@ -9,7 +9,70 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
+from scipy import signal
+from scipy import fftpack
 
+def fft(signal: np.ndarray, sampling_frequency, bins):
+    #FFT function calculates the fft for the signal
+    #if normalisation is needed, the normalise argument should be True
+    #and omega which is the rotational frequency needs to be given
+    #bins gives the size of the fft output. 
+    #if normalisation is required, omega must also be provided. 
+    
+    no_of_meas = bins
+    freq = np.linspace(0, int(sampling_frequency/2), int(no_of_meas/2))
+    freq_data = fftpack.fft(signal, bins)
+    y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
+    y[0] = y[0] / 2
+    
+    return y
+    '''
+    if bins == False:
+        no_of_meas = len(signal)
+        freq = np.linspace(0, int(sampling_frequency/2), int(no_of_meas/2))
+        freq_data = fftpack.fft(signal)
+        y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
+        y[0] = y[0] / 2
+    if bins == True:
+        no_of_meas = bins
+        freq = np.linspace(0, int(sampling_frequency/2), int(no_of_meas/2))
+        freq_data = fftpack.fft(signal, bins)
+        y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
+        y[0] = y[0] / 2
+    return y
+    
+    
+    if normalise == False:    
+        return y
+    elif normalise == True:
+        y_norm = y/omega
+        return y_norm, y
+'''
+def fft_plot(spec, column, frequency, rotor_freq, units, path):
+    #This function rejects the 0th DC value as the log function fails.
+    #Function allows to plot and save normalised frequency ffts
+    bins = len(spec)
+    normalised_frequency = frequency/rotor_freq
+    fig, (f1, f2) = plt.subplots(2,1)
+    f1.loglog(frequency[1:bins], spec[1:])
+    f2.loglog(normalised_frequency[1:bins],spec[1:])
+    fig.suptitle(column)
+    f2.set_xlabel(r'$\frac{F}{f_0}$ [Hz/Hz]')
+    f1.set_xlabel('Frequency [Hz]')
+    f1.set_ylabel( 'Amplitude' '(' + units[column]+ ')')
+    f2.set_ylabel( 'Amplitude' '(' + units[column]+ ')')
+    f1.set_title('Non-Normalised')
+    f2.set_title('Normalised')
+    f1.grid()
+    f2.grid() 
+    fig.tight_layout()
+    plt.savefig(path + column + '.png')
+    plt.close()
+
+        
+    
+    
+    
 def rolling_average(df, column_name: str, value_skip, normalization=False):
     if not isinstance(column_name, str):
         raise TypeError
@@ -30,8 +93,6 @@ def rolling_average(df, column_name: str, value_skip, normalization=False):
     else:
         return stat
 
-
-
 def rolling_std(df, column_name, value_skip, normalization= False):
     if not isinstance(column_name, str):
         raise TypeError
@@ -47,7 +108,7 @@ def rolling_std(df, column_name, value_skip, normalization= False):
     
     stat = []
     
-    for i in range(0, len(arr)):
+    for i in range(0, len(dummy)):
         var = np.std(dummy[0:(i+1)])
         stat = np.append(stat, var)
     
@@ -57,9 +118,6 @@ def rolling_std(df, column_name, value_skip, normalization= False):
         return stat_norm, stat
     else:
         return stat
-        
-    
-        
         
 def rolling_max(df, column_name):
     if not isinstance(column_name, str):
@@ -74,10 +132,8 @@ def rolling_max(df, column_name):
         else:
             stat = np.append(stat, arr[i])
     return stat
- 
-
-
-def rolling_min(df, column_name):
+def rolling_min(df, column_name):    
+    
     if not isinstance(column_name, str):
         raise TypeError
     arr = df[column_name].to_numpy()
@@ -100,7 +156,6 @@ def plot_rolling_props(df, units, path, prop, df_norm = pd.DataFrame()):
     #otherwise figures will be created
     #if the normalised data frame is passed, it should use the keyword for this
     #function df_norm
-    
 
     
     if df_norm.empty:        
@@ -133,7 +188,7 @@ def plot_rolling_props(df, units, path, prop, df_norm = pd.DataFrame()):
                 plt.savefig(path + column + '.png')
                 plt.grid()
                 plt.close()
-    
+
     else:
         if prop == 'mean':     
             for column in df.columns:        
@@ -151,10 +206,10 @@ def plot_rolling_props(df, units, path, prop, df_norm = pd.DataFrame()):
                 fig.savefig(path + column + '.png')
                 plt.close()
                 
-        elif prop == 'std':
+        else:
             for column in df.columns:
                 fig, (f1, f2) = plt.subplots(2,1,sharex = True)
-                fig.suptitle(df[column])
+                fig.suptitle(column)
                 f1.plot(df[column])
                 f2.plot(df_norm[column])
                 f2.set_xlabel('Time [s]')
@@ -165,23 +220,5 @@ def plot_rolling_props(df, units, path, prop, df_norm = pd.DataFrame()):
                 f1.set_ylabel(r'$\sigma$' + '(' + units[column]+ ')')
                 f2.set_ylabel(r'$\frac{\sigma}{\mu}$')
                 fig.savefig(path + column + '.png')
-                fig.close()
-                
-            '''
-for column in df.columns:
-                        fig, (f1, f2) = plt.subplots(2, 1, sharex = True)
-                        f1.plot(df[column])
-                        f2.plot(df_norm[column])
-                        fig.suptitle(column)
-                        f2.set_xlabel('time (s)')
-                        f1.set_title('Non-Normalised')
-                        f2.set_title('Normalised')
-                        f1.grid()
-                        f2.grid()
-                        f1.set_ylabel(r'$\sigma$' + '(' + units[column]+ ')')
-                        f2.set_ylabel(r'$\frac{\sigma}{\mu}$')
-                        fig.savefig(path + column + '.png')
-                        fig.close()
-                    
-                
-                    '''
+                plt.close()
+            

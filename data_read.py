@@ -14,7 +14,7 @@ from scipy import fftpack
 import math
 import os
 import pickle
-import plotting
+import stats_lib
 #%%
 '''
 File Read into script
@@ -24,13 +24,14 @@ Initial Plots
 '''
 
 #The data file was cleaned to remove the first couple of lines. 
-path = 'Documents/Github/Thesis_Tidal_Turbine/Prior_Data_Papers/'
+path = 'Prior_Data_Papers/'
 df = pd.read_csv(path+'run007.txt', sep = '\t', skiprows=9)
 units = df.iloc[0]
 df = df.drop([0])
 #renaming first column header
 df = df.rename({'#RPM': 'RPM'}, axis=1)
-
+units['RPM'] = 'RPM'
+ 
 #all column heads are stored to recreate proper columns
 col_head = list(df.columns)
 #the data series is throwing an exception that the data is not numeric
@@ -56,7 +57,7 @@ min_val = df.min(axis = 0)                    # min values
 #Include time stamps
 sampling_freq = 256 #Hz
 t_per_meas = 1/256
-run_time = 360#4097#360 #seconds
+run_time = 360#4097# 360#seconds
 no_of_meas = int(run_time / t_per_meas)
 # create time arra
 t = np.linspace(0, run_time, no_of_meas)
@@ -66,167 +67,100 @@ df['time'] = t
 df = df.set_index('time')
 
 # %% Spectral Analysis
-
-path_fft = 'Documents/Github/Thesis_Tidal_Turbine/Results/fft/'
+rotor_freq = mean_val[0]/60
+path_fft = 'Results/fft/'
 os.makedirs(path_fft)
-frequency = np.linspace(0, int(sampling_freq/2), int(no_of_meas/2))
+bins = (run_time*sampling_freq)
+timestep = df.index[1]
 
-for  column in df:
+for column in df:  
     if column == 'RPM':
         pass
     else:
-        freq_data = fftpack.fft(df[column].to_numpy())
-        y = 2/no_of_meas * np.abs(freq_data[0:np.int(no_of_meas/2)])
-        y[0] = y[0] / 2
-        fig = plt.plot(frequency, y)
-        plt.yscale('log')
-        plt.xlabel('Frequency [Hz]')
-        plt.ylabel('Amplitude')
-        plt.title(column)
-        plt.grid(True, which = 'both', linestyle='--')
-        plt.savefig(path_fft+column+'.png')
-        pickle.dump(fig, open(path_fft+column + 'fig.pickle','wb'))
-        plt.close()
-# %%
-'''
-Spectral Analysis using Welch Method. 
-Comparison to be made with FFT
-'''
-'''
-path_welch = 'Documents/Github/Thesis_Tidal_Turbine/Results/Welch_Transform/'
-os.makedirs(path_welch)
-for column in df:
-    f, spectrum = signal.welch(df[column], fs = 256, window='hamm', noverlap=64)
-    plt.plot(f, spectrum)
-    plt.savefig(path_welch+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-'''
+        spec = stats_lib.fft(df[column].to_numpy(), sampling_freq, bins)
+        frequency = np.fft.fftfreq(bins, d=timestep)
+        stats_lib.fft_plot(spec, column, frequency, rotor_freq, units, path_fft)
+      #  plt.loglog(frequency[0:int(bins/2)], spec)
+        
+
+    
+                    
 # %% Rolling Averages
 #create new data frame that holds the rolling mean for each property
-df_rolling_average = pd.DataFrame(index = df.index)
-avg = rolling_average(df, 'RPM')
+
+import stats_lib
+
+'''
+Mean
+'''
+df_rolling_average = pd.DataFrame()
+df_rolling_average_normalised = pd.DataFrame()
+value_skip = 256 #
+normalization = True #parameter passed onto functions to the statistics
+#calculation and plotting arguments to determine if normalisation needs to 
+#be carried out. 
+for column in df.columns:
+    
+    if normalization == True:
+        avg_norm, avg = stats_lib.rolling_average(df, column, value_skip, normalization)
+        df_rolling_average[column] = avg
+        df_rolling_average_normalised[column] = avg_norm
+    else:
+        avg_norm, avg = stats_lib.rolling_average(df, column, value_skip)
+        df_rolling_average[column] = avg
+       
+        
+path_rolling_mean = 'Results/Rolling_Statistics/Rolling_Mean/long/' 
+os.makedirs(path_rolling_mean)
+        
+stats_lib.plot_rolling_props(df_rolling_average, units, path_rolling_mean, 'mean', df_rolling_average_normalised)
+
+'''
+stand deviation
+'''
+df_rolling_std = pd.DataFrame()
+df_rolling_std_norm = pd.DataFrame()
 
 #calcullate 
 for column in df.columns:
-    avg = rolling_average(df, column)
-    df_rolling_average[column] = avg
+    normalisation = True
+    std_norm, std = stats_lib.rolling_std(df, column, value_skip, normalisation)
+    df_rolling_std[column] = std
+    df_rolling_std_norm[column] = std_norm
     
-path_rolling_mean = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Mean/' 
-os.makedirs(path_rolling_mean)
-
-
-
-# %%
-    
-plt.plot(avg)
-rolling_mean = df.rolling(10*sampling_freq).mean()
-rolling_rolling_mean = rolling_mean.rolling(7).std()
-
-rolling_max = df.rolling(10*sampling_freq).max()
-rolling_rolling_max = rolling_max.rolling(7).std()
-
-
-rolling_min = df.rolling(10*sampling_freq).min()
-rolling_rolling_min = rolling_min.rolling(7).std()
-
-rolling_std = df.rolling(10*sampling_freq).std()
-rolling_rolling_std = rolling_std.rolling(7).std()
-
-path_rolling_mean = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Mean/' 
-os.makedirs(path_rolling_mean)
-
-path_rolling_max = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Max/'
-os.makedirs(path_rolling_max)
-
-path_rolling_min = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Min/' 
-os.makedirs(path_rolling_min)
-
-path_rolling_std = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Std/'
+path_rolling_std = 'Results/Rolling_Statistics/Rolling_Std/long/' 
 os.makedirs(path_rolling_std)
-    
-for column in df:
-    plt.plot(rolling_rolling_mean[column])
-    plt.savefig(path_rolling_mean+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-    plt.plot(rolling_rolling_max[column])
-    plt.savefig(path_rolling_max+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-    plt.plot(rolling_rolling_min[column])
-    plt.savefig(path_rolling_min+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-    plt.plot(rolling_rolling_std[column])
-    plt.savefig(path_rolling_std+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-# %%
-rolling_mean = df.rolling(10*sampling_freq).mean()
+        
+stats_lib.plot_rolling_props(df_rolling_std, units, path_rolling_std, 'std', df_rolling_std_norm)
 
+# %% Thrust Compariosons ex
+path_sum = 'Results/Sum/'
+Fex =  (df['Fx1'] + df['Fx2'] + df['Fx3']).to_numpy()
+Thrust = (-1*df['Thrust']).to_numpy()
+Fx = (-1*df['Fx']).to_numpy()
+plt.plot(df.index[256:(256*2)], Thrust[256:(256*2)], label = 'Rotor')
+plt.plot(df.index[256:(256*2)],Fex[256:(256*2)], label = 'Blades')
+plt.plot(df.index[256:(256*2)], Fx[256:(256*2)], label = 'Base')
+plt.legend()
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude (N)')
+plt.title('Thrust Time Signal')
+os.makedirs(path_sum)
+plt.savefig(path_sum + 'force_ex_time' + '.png')
+plt.close()
 
-rolling_max = df.rolling(10*sampling_freq).max()
+spectral_Fex = stats_lib.fft(Fex, 256, 256)
+spectral_Thrust = stats_lib.fft(Thrust, 256, 256)
+spectral_base = stats_lib.fft(Fx, 256, 256)
+plt.plot(spectral_Fex, label = 'Blades')
+plt.plot(spectral_base, label = 'Base')
+plt.plot(spectral_Thrust, label = 'Rotor')
+plt.legend()
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('Amplitude[N]')
+plt.yscale('log')
+plt.title('FFT in ex direction')
+plt.savefig(path_sum + 'force_ex_fft' + '.png')
+plt.close()
 
-
-rolling_min = df.rolling(10*sampling_freq).min()
-
-
-rolling_std = df.rolling(10*sampling_freq).std()
-
-
-path_rolling_mean = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Mean/' 
-os.makedirs(path_rolling_mean)
-
-path_rolling_max = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Max/'
-os.makedirs(path_rolling_max)
-
-path_rolling_min = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Min/' 
-os.makedirs(path_rolling_min)
-
-path_rolling_std = 'Documents/Github/Thesis_Tidal_Turbine/Results/Rolling_Statistics/Rolling_Std/'
-os.makedirs(path_rolling_std)
-    
-plt.plot(rolling_mean['Thrust'][1000:2000])
-for column in df:
-    plt.plot(rolling_mean[column])
-    plt.savefig(path_rolling_mean+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-    plt.plot(rolling_max[column])
-    plt.savefig(path_rolling_max+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-    plt.plot(rolling_min[column])
-    plt.savefig(path_rolling_min+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
-    
-    plt.plot(rolling_std[column])
-    plt.savefig(path_rolling_std+column+'.png')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-    plt.title(column)
-    plt.close()
+# %% 
