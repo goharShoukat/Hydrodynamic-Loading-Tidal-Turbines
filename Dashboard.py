@@ -12,19 +12,50 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import numpy as np
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QFileDialog, QDialog
+import os
+import sys
+from pathlib import Path
 
 class Window(QtWidgets.QWidget):
     def __init__(self):
         super(Window, self).__init__()
-        l1 = QtWidgets.QLabel(self)
-        l2 = QtWidgets.QLabel(self)
+        mainLayout = QtWidgets.QGridLayout()
+        self.l1 = QtWidgets.QLabel(self)
+        self.l1.setText('File Name')
+        mainLayout.addWidget(self.l1, 0,0)
+        self.l1_input = QtWidgets.QLineEdit(self)
+        mainLayout.addWidget(self.l1_input, 0,1)
+        self.l1_b1 = QtWidgets.QPushButton('...')
+        mainLayout.addWidget(self.l1_b1, 0,2)
+        self.directory = self.l1_b1.clicked.connect(self.openFile)
+       
+        self.l2 = QtWidgets.QLabel(self)
+        self.l2.setText('Signal')
+        mainLayout.addWidget(self.l2, 1,0)
+        self.l2_input = QtWidgets.QLineEdit(self)
+        mainLayout.addWidget(self.l2_input)
+
         
-        l1.setText('Working Directory')
-        l2.setText('File Name')
+        self.setLayout(mainLayout)
+    
+    def openFile(self):
         
-    #    l1.setAlignment(Qt.AlignLeft)
-      #  l2.setAlignment(Qt.AlignLeft)
-     
+        self.filename, _ = QFileDialog.getOpenFileName(self, 'File')
+        #print(self.filename)
+        self.l1_input.setText(str(self.filename))
+        return self.filename
+        
+
+        
+                #self.textedit.setText(data)
+       # QFileDialog.getOpenFileName(self, 'Select file')  # For file.
+
+
+      
+    
+       
+        '''
         figure1 = Figure()
         figure2 = Figure()
         figure3 = Figure()
@@ -42,8 +73,9 @@ class Window(QtWidgets.QWidget):
         toolbar3 = NavigationToolbar(canvas3, self)
         toolbar4 = NavigationToolbar(canvas4, self)
 
-        mainLayout = QtWidgets.QGridLayout()
-        mainLayout.addWidget(toolbar1,0,0)
+        
+        mainLayout.addWidget(_audio_file, 0,0)
+      #  mainLayout.addWidget(toolbar1,0,0)
         mainLayout.addWidget(toolbar2,0,1)
         mainLayout.addWidget(toolbar3,2,0)
         mainLayout.addWidget(toolbar4,2,1)
@@ -51,15 +83,13 @@ class Window(QtWidgets.QWidget):
         mainLayout.addWidget(canvas2,1,1)
         mainLayout.addWidget(canvas3,3,0)
         mainLayout.addWidget(canvas4,3,1)
-        self.setLayout(mainLayout)
-        self.setWindowTitle("Flow Layout")
         
+        self.setWindowTitle("Flow Layout")
+        '''
 
         
 
 if __name__ == '__main__':
-
-    import sys
 
     app = QtWidgets.QApplication(sys.argv)
     mainWin = Window()
