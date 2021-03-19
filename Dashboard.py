@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 import data_import_func
 from scipy.stats import norm
+import matplotlib.pyplot as plt
 
 class Window(QtWidgets.QWidget):
     def __init__(self):
@@ -74,10 +75,10 @@ class Window(QtWidgets.QWidget):
         self.canvas2 = FigureCanvas(figure2)
         self.canvas3 = FigureCanvas(figure3)
         self.canvas4 = FigureCanvas(figure4)
-        self.ax1 = figure1.add_subplot(111)
-        self.ax2 = figure2.add_subplot(111)
-        self.ax3 = figure3.add_subplot(111)
-        self.ax4 = figure4.add_subplot(111)
+        self.ax1 = figure1.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
+        self.ax2 = figure2.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
+        self.ax3 = figure3.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
+        self.ax4 = figure4.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
         
         
         toolbar1 = NavigationToolbar(self.canvas1, self)
@@ -141,7 +142,10 @@ class Window(QtWidgets.QWidget):
         self.ax1.plot(self.df.index,mean_array, label = 'Mean', linestyle = '--')
         self.ax1.set_ylabel('Force [N]')
         self.ax1.set_xlabel('Time [s]')
+        self.ax1.set_title('Time Signal')
+        self.ax1.grid()
         self.ax1.legend()
+        
         self.canvas1.draw()
     
         #Figure 2 will be used to plot the fft
@@ -150,6 +154,8 @@ class Window(QtWidgets.QWidget):
         self.ax2.loglog(freq[1:int(len(freq)/2)], spec[1:])
         self.ax2.set_ylabel('Force [N]')
         self.ax2.set_xlabel('Frequency [s]')
+        self.ax2.set_title('FFT')
+        self.ax2.grid()
         self.canvas2.draw()
         
         #Figure 3 will be used to plot a normal distribution of normalised loads
@@ -159,6 +165,8 @@ class Window(QtWidgets.QWidget):
         self.ax3.set_ylabel('PDF')
         sorted_array = self.df.sort_values(by=self.content)[self.content]
         self.ax3.plot(sorted_array, norm.pdf(sorted_array, mean_val, std_val))
+        self.ax3.set_title('Probability density Function')
+        self.ax3.grid()
         self.canvas3.draw()
         
 
