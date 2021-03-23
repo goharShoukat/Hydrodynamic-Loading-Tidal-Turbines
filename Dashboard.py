@@ -11,7 +11,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import numpy as np
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QFileDialog, QDialog, QComboBox
+#from PyQt5.QtWidgets import QFileDialog, QDialog, QComboBox
+from PyQt5.QtWidgets import *
 import os
 import sys
 from pathlib import Path
@@ -25,6 +26,8 @@ class Window(QtWidgets.QWidget):
         self.setGeometry(0, 0, 1000, 800)
         mainLayout = QtWidgets.QGridLayout()
   
+   #     self.scroll = QScrollArea(self)
+   #     self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         
         self.l1 = QtWidgets.QLabel(self)
         self.l1.setText('File')
@@ -41,7 +44,7 @@ class Window(QtWidgets.QWidget):
         self.l2 = QtWidgets.QLabel(self)
         self.l2.setText('Signal')
         self.combo_box = QComboBox(self) 
-        self.combo_box.addItems(['Fx', 'Fx1', 'Fx2', 'Fx3', 'Thrust'])
+        self.combo_box.addItems(['Thrust', 'Torque', 'Fx1', 'Fy1', 'Mx1', 'My1', 'Mz1', 'Fx2', 'Fy2', 'Mx2', 'My2', 'Mz2', 'Fx3', 'Fy3', 'Mx3', 'My3', 'Mz3', 'Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz'])
 
         
 
@@ -145,7 +148,6 @@ class Window(QtWidgets.QWidget):
         self.ax1.set_title('Time Signal')
         self.ax1.grid()
         self.ax1.legend()
-        
         self.canvas1.draw()
     
         #Figure 2 will be used to plot the fft
