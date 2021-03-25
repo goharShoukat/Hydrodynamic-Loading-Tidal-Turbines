@@ -21,7 +21,7 @@ Data Cleaning, Time Stamp Addition
 Simple Statistics Calculated
 Initial Plots
 '''
-def access_file(file, run_time = 360):
+def access_file(file, run_time = 360, sampling_freq = 256):
     df = pd.read_csv(file, sep = '\t', skiprows=9, low_memory=False)
     units = df.iloc[0]
     df = df.drop([0])
@@ -40,11 +40,9 @@ def access_file(file, run_time = 360):
         df.insert(i, col_head[i], x)
         del x
     
-        
-    #Include time stamps
-    sampling_freq = 256 #Hz
+
     t_per_meas = 1/sampling_freq
-    run_time = 360#4160#4097#360#4097# 360#seconds
+    #4160#4097#360#4097# 360#seconds
     no_of_meas = int(run_time / t_per_meas)
     # create time arra
     t = np.linspace(0, run_time, no_of_meas)
@@ -54,9 +52,20 @@ def access_file(file, run_time = 360):
     df = df.set_index('time')
     df['Thrust'] = -df['Thrust']
     df['Fx'] = -df['Fx']
+    df['Torque'] = -df['Torque']
+    df['Fy1'] = -df['Fy1']
+    df['Mx1'] = -df['Mx1']
+    df['My1'] = -df['My1']
+    df['Fy2'] = -df['Fy2']
+    df['Mx2'] = -df['Mx2']
+    df['My2'] = -df['My2']
+    df['Fy3'] = -df['Fy3']
+    df['Mx3'] = -df['Mx3']
+    df['My3'] = -df['My3']
+    df['My'] = -df['My']
     
-    df_new = df[['Thrust', 'Fx1', 'Fx2', 'Fx3', 'Fx']].copy()
-    return df_new
+    
+    return df
 
 def stats(ser):
     #Statistics of the data

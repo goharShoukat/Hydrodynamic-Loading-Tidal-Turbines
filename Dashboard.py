@@ -25,10 +25,8 @@ class Window(QtWidgets.QWidget):
         super(Window, self).__init__()
         self.setGeometry(0, 0, 1000, 800)
         mainLayout = QtWidgets.QGridLayout()
-  
-   #     self.scroll = QScrollArea(self)
-   #     self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         
+   
         self.l1 = QtWidgets.QLabel(self)
         self.l1.setText('File')
 
@@ -45,7 +43,7 @@ class Window(QtWidgets.QWidget):
         self.l2.setText('Signal')
         self.combo_box = QComboBox(self) 
         self.combo_box.addItems(['Thrust', 'Torque', 'Fx1', 'Fy1', 'Mx1', 'My1', 'Mz1', 'Fx2', 'Fy2', 'Mx2', 'My2', 'Mz2', 'Fx3', 'Fy3', 'Mx3', 'My3', 'Mz3', 'Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz'])
-
+        
         
 
         self.plot_b2 = QtWidgets.QPushButton('Plot', self)
@@ -67,6 +65,22 @@ class Window(QtWidgets.QWidget):
         self.l6 = QtWidgets.QLabel(self)
         self.l6.setText('Min of Time Series')
         self.l6_output = QtWidgets.QLineEdit(self)
+        
+#add the input options for fft windowing, run time, sampling frequency
+#Total Run Time
+        self.l7 = QtWidgets.QLabel(self)
+        self.l7.setText('Total Run Time')
+        self.l7_input = QtWidgets.QLineEdit(self)
+        self.l7_input.setText(str(360.0))
+#Sampling Frequency
+        self.l8 = QtWidgets.QLabel(self)
+        self.l8.setText('Sampling Frequency')
+        self.l8_input = QtWidgets.QLineEdit(self)
+        self.l8_input.setText(str(256))
+        
+        
+
+       
         
 
 
@@ -92,7 +106,7 @@ class Window(QtWidgets.QWidget):
         mainLayout.addWidget(self.l1, 0, 0)
         mainLayout.addWidget(self.l1_input, 0, 1)
         mainLayout.addWidget(self.l1_b1, 0,2)
-        mainLayout.addWidget(self.load_b3, 0, 3)
+        mainLayout.addWidget(self.load_b3, 0, 7)
         mainLayout.addWidget(self.l2, 1,0)
         mainLayout.addWidget(self.combo_box, 1, 1)
         mainLayout.addWidget(self.plot_b2, 1, 2)
@@ -104,6 +118,11 @@ class Window(QtWidgets.QWidget):
         mainLayout.addWidget(self.l5_output,4, 3)
         mainLayout.addWidget(self.l6, 5,2)
         mainLayout.addWidget(self.l6_output,5, 3)
+        
+        mainLayout.addWidget(self.l7, 0,3)
+        mainLayout.addWidget(self.l7_input,0, 4)
+        mainLayout.addWidget(self.l8, 0, 5)
+        mainLayout.addWidget(self.l8_input, 0, 6)
         mainLayout.addWidget(toolbar1,2,0)
         mainLayout.addWidget(toolbar2,2,1)
         mainLayout.addWidget(toolbar3,4,0)
@@ -117,18 +136,24 @@ class Window(QtWidgets.QWidget):
   
         self.setLayout(mainLayout)
         self.setWindowTitle("Dashboard")
+
+
         
-   
+    
     
     def openFile(self):
         
+
         self.filename, _ = QFileDialog.getOpenFileName(self, 'File')
         self.l1_input.setText(str(self.filename))
+
         return self.filename
 
         
     def readFile(self):
-        self.df = data_import_func.access_file(self.filename)
+        self.l7_get_text = float(self.l7_input.text())
+        self.l8_get_text = float(self.l8_input.text())
+        self.df = data_import_func.access_file(self.filename, self.l7_get_text, self.l8_get_text)
         
     def plot(self):
         #Figure 1 is used to plot the time series. 
