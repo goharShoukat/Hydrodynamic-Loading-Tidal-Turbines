@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 class Window(QtWidgets.QWidget):
     def __init__(self):
         super(Window, self).__init__()
-        self.setGeometry(0, 0, 1000, 800)
+        self.setGeometry(0, 0, 1000, 1000)
         mainLayout = QtWidgets.QGridLayout()
         
    
@@ -55,15 +55,15 @@ class Window(QtWidgets.QWidget):
         self.l3_output = QtWidgets.QLineEdit(self)
         
         self.l4 = QtWidgets.QLabel(self)
-        self.l4.setText('Std of Time Series')
+        self.l4.setText('Std of Time Series / Normalised Std')
         self.l4_output = QtWidgets.QLineEdit(self)
         
         self.l5 = QtWidgets.QLabel(self)
-        self.l5.setText('Max of Time Series')
+        self.l5.setText('Max of Time Series / Normalised Max')
         self.l5_output = QtWidgets.QLineEdit(self)
         
         self.l6 = QtWidgets.QLabel(self)
-        self.l6.setText('Min of Time Series')
+        self.l6.setText('Min of Time Series / Normalised Min')
         self.l6_output = QtWidgets.QLineEdit(self)
         
 #add the input options for fft windowing, run time, sampling frequency
@@ -78,7 +78,22 @@ class Window(QtWidgets.QWidget):
         self.l8_input = QtWidgets.QLineEdit(self)
         self.l8_input.setText(str(256))
         
+#provide option for bins for fft
+        #self.checkbox = QtWidgets.QCheckBox('FFT Customization', self)
+        #self.checkbox.setLayoutDirection(QtCore.Qt.RightToLeft)        
+        self.l9 = QtWidgets.QLabel(self)
+        self.l9.setText('Bins for FFT')
+        self.l9_input = QtWidgets.QLineEdit(self)
+        self.l9_input.setText('Default')
+        self.l10_checkbox = QtWidgets.QCheckBox('Normalize FFT', self)
         
+#Provide input for bins for histograms
+        self.l11 = QtWidgets.QLabel(self)
+        self.l11.setText('Bins for Histogram')
+        self.l11_input = QtWidgets.QLineEdit(self)
+        self.l11_input.setText('50')
+        
+    
 
        
         
@@ -123,6 +138,15 @@ class Window(QtWidgets.QWidget):
         mainLayout.addWidget(self.l7_input,0, 4)
         mainLayout.addWidget(self.l8, 0, 5)
         mainLayout.addWidget(self.l8_input, 0, 6)
+
+        mainLayout.addWidget(self.l9, 1,4)
+        mainLayout.addWidget(self.l9_input, 1,5)
+ 
+        mainLayout.addWidget(self.l10_checkbox, 1,6)
+        mainLayout.addWidget(self.l11, 2, 6)
+        mainLayout.addWidget(self.l11_input, 2, 7)
+        
+        
         mainLayout.addWidget(toolbar1,2,0)
         mainLayout.addWidget(toolbar2,2,1)
         mainLayout.addWidget(toolbar3,4,0)
@@ -153,6 +177,8 @@ class Window(QtWidgets.QWidget):
     def readFile(self):
         self.l7_get_text = float(self.l7_input.text())
         self.l8_get_text = float(self.l8_input.text())
+       
+        
         self.df = data_import_func.access_file(self.filename, self.l7_get_text, self.l8_get_text)
         
     def plot(self):
@@ -161,10 +187,11 @@ class Window(QtWidgets.QWidget):
         self.ax1.clear()
         self.content = self.combo_box.currentText() 
         std_val, mean_val, max_val, min_val = data_import_func.stats(self.df[self.content])
-        self.l3_output.setText('%.6s' % str(mean_val))
-        self.l4_output.setText('%.6s' % str(std_val))
-        self.l5_output.setText('%.6s' % str(max_val))
-        self.l6_output.setText('%.6s' % str(min_val))
+        self.l3_output.setText('%.5s' % str(mean_val))
+        #Add Normalisation to the statistical parameters
+        self.l4_output.setText('%.5s' % str(std_val) + '/' + '%.4s' % str(std_val/mean_val))
+        self.l5_output.setText('%.5s' % str(max_val) + '/' + '%.4s' % str(max_val/mean_val))
+        self.l6_output.setText('%.5s' % str(min_val) + '/' + '%.4s' % str(min_val/mean_val))
         mean_array = [mean_val] * len(self.df[self.content])
         self.ax1.plot(self.df[self.content], label = 'Data')
         self.ax1.plot(self.df.index,mean_array, label = 'Mean', linestyle = '--')
@@ -176,18 +203,37 @@ class Window(QtWidgets.QWidget):
         self.canvas1.draw()
     
         #Figure 2 will be used to plot the fft
-        spec, freq = data_import_func.spectral_analysis(self.df,self.content)
+        #read the bins provided for the fft operation
+        if self.l9_input.text() == 'Default':
+            self.l9_get_text = 'Default'
+        else:
+            self.l9_get_text = float(self.l9_input.text())
+       
+        #allow for normalisation using the checkbox 
+        spec, freq = data_import_func.spectral_analysis(self.df,self.content, self.l7_get_text, self.l8_get_text, self.l9_get_text)
         self.ax2.clear()
-        self.ax2.loglog(freq[1:int(len(freq)/2)], spec[1:])
+        
+        if self.l10_checkbox.isChecked() == True:
+            rotor_freq = data_import_func.rotor_freq(self.df['RPM'])
+            freq = freq/rotor_freq            
+            self.ax2.loglog(freq[1:int(len(freq)/2)], spec[1:])
+            self.ax2.set_xlabel(r'$\frac{F}{f_0}$ [Hz/Hz]')
+            self.ax2.set_title('Normalised FFT')
+           
+        else:
+            self.ax2.loglog(freq[1:int(len(freq)/2)], spec[1:])
+            self.ax2.set_xlabel('Frequency [s]')
+            self.ax2.set_title('FFT')
+            
         self.ax2.set_ylabel('Force [N]')
-        self.ax2.set_xlabel('Frequency [s]')
-        self.ax2.set_title('FFT')
-        self.ax2.grid()
+        self.ax2.grid(True, which = 'both', ls = '--')
         self.canvas2.draw()
         
+        #read the bins for the histogram first
+        self.l11_get_text = int(self.l11_input.text())
         #Figure 3 will be used to plot a normal distribution of normalised loads
         self.ax3.clear()
-        self.ax3.hist(self.df[self.content], bins = 50, density=True)
+        self.ax3.hist(self.df[self.content], bins = self.l11_get_text, density=True)
         self.ax3.set_xlabel('Force [N]')
         self.ax3.set_ylabel('PDF')
         sorted_array = self.df.sort_values(by=self.content)[self.content]
