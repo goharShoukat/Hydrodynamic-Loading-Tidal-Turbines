@@ -75,12 +75,60 @@ def stats(ser):
     min_val = ser.min(axis = 0)                    # min values
     return std_val, mean_val, max_val, min_val
 
-def spectral_analysis(df, column, run_time = 360, sampling_freq = 256):
+def spectral_analysis(df, column, run_time = 360, sampling_freq = 256, bins = False):
     
-    bins = (run_time*sampling_freq)
-    timestep = df.index[1]
+    if bins == 'Default':
+        
+        bins = int(run_time*sampling_freq)
+        timestep = df.index[1]
+    else:
+        timestep = df.index[1]
     
-    spec = stats_lib.fft(df[column].to_numpy(), sampling_freq, bins)
-    frequency = np.fft.fftfreq(bins, d=timestep)
+    spec = stats_lib.fft(df[column].to_numpy(), int(sampling_freq), int(bins))
+    frequency = np.fft.fftfreq(int(bins), d=timestep)
     
     return spec, frequency
+
+#function to cacluate rotor frequency to normalise fft
+def rotor_freq(ser):
+    return ser.mean()/60
+
+# %% Filtrage Function
+def filtrage(t,x,fc,filter_type):
+    fe = 1/(t[1]-t[0])
+    n = len(x)
+    #not clear on why n-1 is used
+    delta_f = fe/(n-1)
+    f = np.arange(-fe/2, fe/2+delta_f, delta_f)
+        #low pass filter
+   
+    f1 = min(fc)
+    f2 = max(fc)
+
+    ind1 = abs(f) < f1
+    ind2 = abs(f) > f2
+    ind = (ind1 + ind2)
+    
+    ind = np.fft.fftshift(ind)
+    fftx = np.fft.fft(x)  
+    fftx[ind == True] = 0
+    xf = np.real(np.fft.ifft(fftx))
+    return xf
+# %% Anglue Turbine
+def angle_turbine(t, Fy1, Fy2, Fy3, fr):
+        
+    f1 = fr - 0.2
+    f2 = fr + 0.2
+    
+
+    Fy1=filtrage(t,Fy1-np.mean(Fy1),[f1, f2],3)
+    Fy2=filtrage(t,Fy2-np.mean(Fy2),[f1, f2],3)
+    Fy3=filtrage(t,Fy3-np.mean(Fy3),[f1, f2],3)    
+    
+    theta1=np.unwrap(np.arctan2((+np.sqrt(3)*Fy1),(Fy1+2*Fy2)))
+    theta2=np.unwrap(np.arctan2(-(-np.sqrt(3)*Fy1),-(Fy1+2*Fy3)))
+    theta3=np.unwrap(np.arctan2((-np.sqrt(3)*(Fy2+Fy3)),(Fy2-Fy3)))
+    theta = np.mean(np.column_stack([theta1, theta2, theta3]), axis = 1)
+    theta=theta-np.round(theta/(2*np.pi))*(2*np.pi)
+    theta = theta * 180/np.pi + 180
+    return theta
