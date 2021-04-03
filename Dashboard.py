@@ -110,7 +110,7 @@ class Window(QtWidgets.QWidget):
         self.ax1 = figure1.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
         self.ax2 = figure2.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
         self.ax3 = figure3.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
-        self.ax4 = figure4.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
+        self.ax4 = figure4.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75], projection='polar')
         
         
         toolbar1 = NavigationToolbar(self.canvas1, self)
@@ -242,8 +242,18 @@ class Window(QtWidgets.QWidget):
         self.ax3.grid()
         self.canvas3.draw()
         
-
-        
+        #Plot the polar chart with 
+        #pass values to the function angle_turbine
+        t = self.df.index.to_numpy()
+        Fy1 = self.df['Fy1'].to_numpy()
+        Fy2 = self.df['Fy2'].to_numpy()
+        Fy3 = self.df['Fy3'].to_numpy()
+        fr= data_import_func.rotor_freq(self.df['RPM'])
+        self.theta = data_import_func.angle_turbine(t, Fy1, Fy2, Fy3, fr)
+        self.ax4.clear()
+        #half the samples are plotted to avoid clutter
+        self.ax4.scatter(self.theta[0:(int(len(self.theta)/2))], self.df[self.content][0:(int(self.l7_get_text/2))], s = 0.01, alpha = 0.75)
+        self.canvas4.draw()
 
 if __name__ == '__main__':
 
