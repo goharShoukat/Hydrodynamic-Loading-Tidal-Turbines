@@ -59,6 +59,7 @@ class Window(QtWidgets.QWidget):
         
         #add the input options for fft windowing, run time, sampling frequency
         #Total Run Time
+        '''
         self.time_label = QtWidgets.QLabel(self)
         self.time_label.setText('Total Run Time')
         self.time_lineedit = QtWidgets.QLineEdit(self)
@@ -70,7 +71,7 @@ class Window(QtWidgets.QWidget):
         self.sampl_freq_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.sampl_freq_lineedit = QtWidgets.QLineEdit(self)
         self.sampl_freq_lineedit.setText(str(128))
-        
+        '''
         
         #Set up bins for fft
         self.fft_label = QtWidgets.QLabel(self)
@@ -92,10 +93,10 @@ class Window(QtWidgets.QWidget):
         subLayout.addWidget(self.file_btn, 0, 2)
         subLayout.addWidget(self.load_btn, 0, 3)        
 
-        subLayout3.addWidget(self.time_label, 0, 0)
-        subLayout3.addWidget(self.time_lineedit, 0, 1)
-        subLayout3.addWidget(self.sampl_freq_label, 0, 2)
-        subLayout3.addWidget(self.sampl_freq_lineedit, 0, 3)
+        #subLayout3.addWidget(self.time_label, 0, 0)
+        #subLayout3.addWidget(self.time_lineedit, 0, 1)
+        #subLayout3.addWidget(self.sampl_freq_label, 0, 2)
+        #subLayout3.addWidget(self.sampl_freq_lineedit, 0, 3)
         subLayout3.addWidget(self.signal_label, 1, 0)
         subLayout3.addWidget(self.combo_box, 1, 1)
 
@@ -156,9 +157,9 @@ class Window(QtWidgets.QWidget):
 
     #pandas reads the data file along with the sampling frequency and total runtime
     def readFile(self):
-        self.sampl_freq = float(self.sampl_freq_lineedit.text())
-        self.total_time = float(self.time_lineedit.text()) 
-        self.df = data_import_func.access_file(self.filename, self.total_time, self.sampl_freq)
+        #self.sampl_freq = float(self.sampl_freq_lineedit.text())
+        #self.total_time = float(self.time_lineedit.text()) 
+        self.df = data_import_func.access_file(self.filename)
     
     
     def plot(self):
@@ -176,7 +177,7 @@ class Window(QtWidgets.QWidget):
         upper_std = [(mean_val + std_val)]* len(self.df[self.content])
         lower_std = [(mean_val - std_val)]* len(self.df[self.content])
         self.ax1.plot(self.df[self.content], label = 'Data')
-        self.ax1.plot(self.df.index,mean_array, label = 'Mean', linestyle = '--')
+        self.ax1.plot(self.df.index, mean_array, label = 'Mean', linestyle = '--')
         self.ax1.plot(self.df.index, upper_std, label = 'Upper Standard Deviation', linestyle = '--')
         self.ax1.plot(self.df.index, lower_std, label = 'Lower Standard Deviation', linestyle = '--')
         self.ax1.set_ylabel('Force [N]')
@@ -195,7 +196,7 @@ class Window(QtWidgets.QWidget):
             self.fft_get_text = float(self.fft_input.text())
        
         #allow for normalisation using the checkbox 
-        spec, freq = data_import_func.spectral_analysis(self.df,self.content, self.total_time,self.sampl_freq,  self.fft_get_text)
+        spec, freq = data_import_func.spectral_analysis(self.df,self.content, self.fft_get_text)
         self.ax2.clear()
         
         
