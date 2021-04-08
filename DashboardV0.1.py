@@ -20,8 +20,8 @@ from pathlib import Path
 import data_import_func
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-
-
+import pandas as pd
+from csaps import csaps
 class Window(QtWidgets.QWidget):
     def __init__(self):
         super(Window, self).__init__()
@@ -49,11 +49,13 @@ class Window(QtWidgets.QWidget):
         self.signal_label = QtWidgets.QLabel(self)
         self.signal_label.setText('Signal')
         self.combo_box = QComboBox(self) 
-        self.combo_box.addItems(['Thrust', 'Torque', 'Fx1', 'Fy1', 'Mx1', 'My1', 'Mz1', 'Fx2', 'Fy2', 'Mx2', 'My2', 'Mz2', 'Fx3', 'Fy3', 'Mx3', 'My3', 'Mz3', 'Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz'])
+        self.combo_box.addItems(['RPM','Force', 'Couple', 'Fx1', 'Fy1', 'Mx1', 'My1', 'Mz1', 'Fx2', 'Fy2', 'Mx2', 'My2', 'Mz2', 'Fx3', 'Fy3', 'Mx3', 'My3', 'Mz3'])
+        #self.combo_box.addItems(['Thrust', 'Torque', 'Fx1', 'Fy1', 'Mx1', 'My1', 'Mz1', 'Fx2', 'Fy2', 'Mx2', 'My2', 'Mz2', 'Fx3', 'Fy3', 'Mx3', 'My3', 'Mz3', 'Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz'])
         self.plot_btn = QtWidgets.QPushButton('Plot', self)
         self.plot_btn.pressed.connect(self.plot) 
         self.plot_btn.pressed.connect(self.window2) 
         self.plot_btn.pressed.connect(self.window3) 
+        #self.plot_btn.pressed.connect(self.window4) 
         
         #add the input options for fft windowing, run time, sampling frequency
         #Total Run Time
@@ -67,7 +69,7 @@ class Window(QtWidgets.QWidget):
         self.sampl_freq_label.setText('Sampling Frequency')
         self.sampl_freq_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.sampl_freq_lineedit = QtWidgets.QLineEdit(self)
-        self.sampl_freq_lineedit.setText(str(256))
+        self.sampl_freq_lineedit.setText(str(128))
         
         
         #Set up bins for fft
@@ -119,12 +121,16 @@ class Window(QtWidgets.QWidget):
         self.ax2 = figure2.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
         self.ax3 = figure3.add_subplot(111,position=[0.15, 0.15, 0.75, 0.75])
         self.ax4 = figure4.add_subplot(111,position=[0.10, 0.10, 0.70, 0.70], projection='polar')
-        
+        self.ax4.set_rlabel_position(90)
+        self.ax4.set_theta_zero_location("N")  # theta=0 at the top
+        self.ax4.set_theta_direction(-1)  # theta increasing clockwise
+        self.ax4.yaxis.set_major_locator(plt.MaxNLocator(3))
         
         toolbar1 = NavigationToolbar(self.canvas1, self)
         toolbar2 = NavigationToolbar(self.canvas2, self)
         toolbar3 = NavigationToolbar(self.canvas3, self)
         toolbar4 = NavigationToolbar(self.canvas4, self)
+
         
         mainLayout.addLayout(subLayout, 0, 0)
         mainLayout.addLayout(subLayout2, 1, 0)
@@ -202,7 +208,7 @@ class Window(QtWidgets.QWidget):
            
         else:
             self.ax2.loglog(freq[1:int(len(freq)/2)], spec[1:])
-            self.ax2.set_xlabel('Frequency [s]')
+            self.ax2.set_xlabel('Frequency [Hz]')
             self.ax2.set_title('FFT')
             
         self.ax2.set_ylabel('Force [N]')
@@ -224,16 +230,21 @@ class Window(QtWidgets.QWidget):
         
         
         #Plot the polar chart with 
-        #pass values to the function angle_turbine
-        t = self.df.index.to_numpy()
-        Fy1 = self.df['Fy1'].to_numpy()
-        Fy2 = self.df['Fy2'].to_numpy()
-        Fy3 = self.df['Fy3'].to_numpy()
-        fr= data_import_func.rotor_freq(self.df['RPM'])
-        self.theta = data_import_func.angle_turbine(t, Fy1, Fy2, Fy3, fr)
         self.ax4.clear()
+        plt.autoscale(axis = 'both', tight = 'bool')
+        self.ax4.set_rlabel_position(90)
+        self.ax4.set_theta_zero_location("N")  # theta=0 at the top
+        self.ax4.set_theta_direction(-1)  # theta increasing clockwise
+        self.ax4.yaxis.set_major_locator(plt.MaxNLocator(3))
+        #pass values to the function angle_turbine
+        angle, fit= data_import_func.angle_theta(self.df, self.content)
+        self.ax4.scatter(angle['theta'], angle['signal'], s=0.01)
+        self.ax4.plot(fit['theta_s'], fit['Average'], color = 'red')
+        
         #half the samples are plotted to avoid clutter
-        self.ax4.scatter(self.theta[0:(int(len(self.theta)/2))], self.df[self.content][0:(int(self.total_time/2))], s = 0.01, alpha = 0.75)
+
+        
+        #self.ax4.scatter(self.theta, self.y_new, s = 0.5, alpha = 1)
         self.ax4.set_title('Varation against Blade Angle')
         self.canvas4.draw()
         
@@ -303,20 +314,33 @@ class Window(QtWidgets.QWidget):
         layout_w3 = QtWidgets.QGridLayout()
         figure5 = Figure()
         self.canvas5 = FigureCanvas(figure5)
+        toolbar5 = NavigationToolbar(self.canvas5, self)
         self.ax5 = figure5.add_subplot(111,position=[0.10, 0.10, 0.70, 0.70], projection='polar')
-        self.ax5.scatter(self.theta[0:(int(len(self.theta)/2))], self.df[self.content][0:(int(self.total_time/2))], s = 0.01, alpha = 0.75)
+        angle, fit= data_import_func.angle_theta(self.df, self.content)
+        self.ax5.scatter(angle['theta'], angle['signal'], s=0.01)
+        #self.ax5.scatter(np.rad2deg(self.newdf['theta']), self.newdf['signal'], s = 0.01)
+        #self.ax5.plot(np.rad2deg(self.theta_s), self.fx_s)
         self.ax5.set_title('Varation against Blade Angle')
+        self.ax5.set_rlabel_position(90)
+        self.ax5.set_theta_zero_location("N")  # theta=0 at the top
+        self.ax5.set_theta_direction(-1)  # theta increasing clockwise
+        self.ax5.yaxis.set_major_locator(plt.MaxNLocator(3))
         layout_w3.addWidget(self.canvas5,0,0)
         self.w3.setLayout(layout_w3)
         self.w3.show()
         
-
+    
 class Window2(QtWidgets.QWidget):                           # <===
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Statistics")
         
 class Window3(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Angular Variation")
+        
+class Window4(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Angular Variation")
