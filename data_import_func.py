@@ -30,8 +30,13 @@ def access_file(file):
     #renaming first column header
     try: df = df.rename({'#rpm': 'RPM'}, axis=1)
     except: df = df.rename({'#RPM': 'RPM'}, axis=1)
+    
+    #removing the hash sign and renaming the dataframe index, important for plotting grapsh
     try: units['#rpm'] = 'RPM'
     except: units['#RPM'] = 'RPM'
+    
+    try: units = units.rename({'#rpm': 'RPM'}) 
+    except: units = units.rename({'#RPM': 'RPM'})
     #all column heads are stored to recreate proper columns
     col_head = list(df.columns)
     #the data series is throwing an exception that the data is not numeric
@@ -70,7 +75,7 @@ def access_file(file):
     #df['My'] = -df['My']
     '''
     
-    return df
+    return df, units
 
 def read_freq(file):
     #code to read frequency from file
@@ -187,3 +192,9 @@ def fitting(signal_, theta, plot = False):
         plt.xlabel('time[s]')
         #plt.ylabel()
     return avg, theta_s
+
+# %% set limits for the polar plot using averaging and expressing all points as a percentage of mean
+
+def limits_polar_plot(series):
+    mean = np.mean(series)
+    return (series-mean)/mean*100
