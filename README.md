@@ -1,4 +1,4 @@
-# Thesis_Tidal_Turbine
+# Hydrodynamic Load Analysis of Tidal Turbines
 This Repository hosts important functions for signal processing. It has 3 important files that are being used for data handling and visualisation:
 * File named 'stats_lib' is a library of useful signal processing functions like fast fourier transforms, rolling averages and statistics. It also includes the option to plot the important figures and then subsequently save them. 
 * Library named 'data_import_func' has functions to read text data files and import it as the Pandas data frame. It also provides additional functions that work in conjection with the functions in the library 'stats_lib' to perform the more vital data processing tasks. 
