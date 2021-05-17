@@ -79,8 +79,10 @@ def load_ldv3D(name, ang):
     v = U[:, 1]
     w = U[:, 2]
 
-    return t, u, v, w, x, y, z
+    #function returns time and u array only as required
+    return t, u
 #%% test fucnction section
+'''
 file = open('run034.000001.txt')
 
 
@@ -139,4 +141,4 @@ U = np.dot(M, lda).T
 u = U[:, 0]
 v = U[:, 1]
 w = U[:, 2]
-
+'''
