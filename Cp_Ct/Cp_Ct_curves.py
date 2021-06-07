@@ -59,7 +59,7 @@ dfs = pd.merge(dfs, vel_df[['Original', 'U_mean', 'U^2_mean', 'U^3_mean', 'Sigma
 force_df = pd.DataFrame({'Original Name':dfs['Original'], 'Force Name':dfs['Force File Name'], \
                          'RPM' : None, 'Thrust_mean' : None, 'Torque_mean' : None, \
                         'Thrust sigma' : None, 'Torque sigma' : None, 'Cp mean' : None, \
-                            'Cp sigma' : None, 'Ct mean' : None, 'Ct sigma' : None})
+                            'Cp sigma' : None, 'Ct mean' : None, 'Ct sigma' : None, 'My1 Mean' : None, 'My1 sigma' : None})
 
 #Cp curve
 #Eq: Cp = Torque x RPM / 0.5 x rho x A x u^3_mean
@@ -76,11 +76,24 @@ for file in force_files:
     torque_mean = np.mean(df['Couple'])
     thrust_std = np.std(df['Force'])
     torque_std  = np.std(df['Couple'])
+    My1_mean = np.mean(df['My1'])
+    My1_std = np.std(df['My1'])
+    My2_mean = np.mean(df['My2'])
+    My2_std = np.std(df['My2'])
+    My3_mean = np.mean(df['My3'])
+    My3_std = np.std(df['My3'])
     force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'RPM'] = rpm_mean
     force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'Thrust_mean'] = thrust_mean
     force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'Torque_mean'] = torque_mean
     force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'Torque sigma'] = torque_std
     force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'Thrust sigma'] = thrust_std
+    force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'My1 sigma'] = My1_std
+    force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'My1 mean'] = My1_mean
+    force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'My2 sigma'] = My2_std
+    force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'My2 mean'] = My2_mean
+    force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'My3 sigma'] = My3_std
+    force_df.at[force_df[force_df['Force Name']==file[:-4]].index[0], 'My3 mean'] = My3_mean
+    
     
     
     #calculate instantenous Cp and Ct
@@ -99,7 +112,7 @@ for file in force_files:
 #rename columns to match the original data file
 force_df = force_df.rename(columns = {'Original Name':'Original'})
 #merge the velocity columns
-dfs = pd.merge(dfs, force_df[['Original', 'RPM', 'Thrust_mean', 'Torque_mean', 'Torque sigma', 'Thrust sigma', 'Cp mean', 'Cp sigma', 'Ct mean', 'Ct sigma']], on = 'Original', how = 'left')
+dfs = pd.merge(dfs, force_df[['Original', 'RPM', 'Thrust_mean', 'Torque_mean', 'Torque sigma', 'Thrust sigma', 'Cp mean', 'Cp sigma', 'Ct mean', 'Ct sigma', 'My1 mean', 'My1 sigma','My2 mean', 'My2 sigma','My3 mean', 'My3 sigma']], on = 'Original', how = 'left')
 
 dfs.to_csv('Cp_Ct/Experiment_Summary.csv')
 
@@ -343,7 +356,6 @@ plt.grid(True)
 plt.show()
 plt.savefig(path_performance_curves + 'C_t P093.png')
 plt.close()
-# %% 
 
 # %% read the csv including the indication for error files
 dfs2 = pd.read_csv('Cp_Ct/Experiment_Summary.csv')
@@ -479,3 +491,6 @@ plt.grid(True)
 plt.show()
 plt.savefig(path_performance_curves + 'C_t V1.2.png')
 plt.close()
+
+
+
