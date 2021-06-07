@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import os
 from Dashboard.load_ldv3D import load_ldv3D
 from Dashboard.data_import_func import access_file
-
+from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
 path = 'Cp_Ct/'
 df = pd.read_csv(path+'Experiment_Summary.csv')
@@ -29,86 +29,100 @@ df2 = df2.sort_values('Reletive Position')
 #plot Reletive Position against Cp
 error_Cp = df2['Cp sigma']
 
-plt.errorbar(df2['Reletive Position'], df2['Cp mean'], error_Cp)
-plt.show()
+#plot Cp
+eb1 = plt.errorbar(df2['Reletive Position'], df2['Cp mean'], error_Cp, fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb1[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines
 plt.ylabel(r'$C_p$')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.savefig('Results/Performance Coefficients/TSR4/Cp.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/Cp.png', dpi = 1200)
 plt.close()
 
 #Plot Ct
-plt.errorbar(df2['Reletive Position'], df2['Ct mean'], df2['Ct sigma'])
+eb2 = plt.errorbar(df2['Reletive Position'], df2['Ct mean'], df2['Ct sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb2[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines
 plt.ylabel(r'$C_t$')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.savefig('Results/Performance Coefficients/TSR4/Ct.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/Ct.png', dpi = 1200)
 plt.close()
 
 #plot standar deviation against position without mean values
-plt.plot(df2['Reletive Position'], df2['Cp sigma'], label = '$C_p$')
-plt.plot(df2['Reletive Position'], df2['Ct sigma'], label = '$C_t$')
+plt.plot(df2['Reletive Position'], df2['Cp sigma'], 'o--', label = '$C_p$')
+plt.plot(df2['Reletive Position'], df2['Ct sigma'], 'o--', label = '$C_t$')
 plt.ylabel(r'$\sigma$')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
 plt.legend()
-plt.savefig('Results/Performance Coefficients/TSR4/Cp Ct Standard Deviation.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/Cp Ct Standard Deviation.png', dpi = 1200)
 plt.close()
 
 
 #plot torque against 
-plt.errorbar(df2['Reletive Position'], df2['Torque_mean'], df2['Torque sigma'])
+eb3 = plt.errorbar(df2['Reletive Position'], df2['Torque_mean'], df2['Torque sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb3[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines
 plt.ylabel('Torque (N/m)')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.savefig('Results/Performance Coefficients/TSR4/torque.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/torque.png', dpi = 1200)
 plt.close()
 
 #plot standar deviation against position without mean values
-plt.plot(df2['Reletive Position'], df2['Torque sigma'])
-plt.ylabel(r'$\sigma$')
+plt.plot(df2['Reletive Position'], df2['Torque sigma'], 'o--')
+plt.ylabel(r'$\sigma$ (N/m)')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.legend()
-plt.savefig('Results/Performance Coefficients/TSR4/Torque Standard Deviation.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/Torque Standard Deviation.png', dpi = 1200)
 plt.close()
 
 #plot thrust against  
-plt.errorbar(df2['Reletive Position'], df2['Thrust_mean'], df2['Thrust sigma'])
+eb4 = plt.errorbar(df2['Reletive Position'], df2['Thrust_mean'], df2['Thrust sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb4[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines)
 plt.ylabel('Thrust (N)')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.savefig('Results/Performance Coefficients/TSR4/thrust.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/thrust.png', dpi = 1200)
 plt.close()
 
 #plot standar deviation against position without mean values
-plt.plot(df2['Reletive Position'], df2['Thrust sigma'])
+plt.plot(df2['Reletive Position'], df2['Thrust sigma'], 'o--')
 plt.ylabel(r'$\sigma$ (N)')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.legend()
-plt.savefig('Results/Performance Coefficients/TSR4/Thrust Standard Deviation.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/Thrust Standard Deviation.png', dpi = 1200)
 plt.close()
 
 
 #plot My for the three blades with error bars
-plt.errorbar(df2['Reletive Position'], df2['My1 mean'], df2['My1 sigma'], label = 'My1')
-plt.errorbar(df2['Reletive Position'], df2['My2 mean'], df2['My2 sigma'], label = 'My2')
-plt.errorbar(df2['Reletive Position'], df2['My3 mean'], df2['My3 sigma'], label = 'My3')
-plt.ylabel('N/m')
+eb5 = plt.errorbar(df2['Reletive Position'], df2['My1 mean'], df2['My1 sigma'], label = 'My1', fmt = 'ro', color = 'red', ecolor = 'gray', elinewidth=1, capsize=0)
+eb5[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines))
+eb6 = plt.errorbar(df2['Reletive Position'], df2['My2 mean'], df2['My2 sigma'], label = 'My2' , fmt = 'bo', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb6[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines))
+eb7 = plt.errorbar(df2['Reletive Position'], df2['My3 mean'], df2['My3 sigma'], label = 'My3', fmt = 'go', color = 'green', ecolor = 'gray', elinewidth=1, capsize=0)
+eb7[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines))
+plt.ylabel('Torque N/m')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
 plt.legend()
-plt.savefig('Results/Performance Coefficients/TSR4/My.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/My.png', dpi = 1200)
 plt.close()
 
 #plot Standard deviation in My for the three blades
-plt.plot(df2['Reletive Position'], df2['My1 sigma'], label = 'My1')
-plt.plot(df2['Reletive Position'], df2['My2 sigma'], label = 'My2')
-plt.plot(df2['Reletive Position'], df2['My3 sigma'], label = 'My3')
+plt.plot(df2['Reletive Position'], df2['My1 sigma'], 'o--',label = 'My1')
+plt.plot(df2['Reletive Position'], df2['My2 sigma'], 'o--',label = 'My2')
+plt.plot(df2['Reletive Position'], df2['My3 sigma'], 'o--',label = 'My3')
 plt.ylabel(r'$\sigma$ (N/m)')
 plt.xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
 plt.legend()
-plt.savefig('Results/Performance Coefficients/TSR4/My Standard deviation.png')
+plt.grid()
+plt.savefig('Results/Performance Coefficients/TSR4/My Standard deviation.png', dpi = 1200)
 plt.close()
