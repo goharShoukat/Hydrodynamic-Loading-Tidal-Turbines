@@ -19,28 +19,57 @@ path = 'Cp_Ct/'
 df = pd.read_csv(path+'Experiment_Summary.csv')
 
 #dataframe with the information regarding TSR 4 only
-df2 = df[(df['TSR'] == '4,00') & (df['Velocity'] == '1')]
+df2 = df[((df['TSR'] == '4,00') | (df['TSR'] == '4,0')) & (df['Velocity'] == '1')]
 df2 = df2.reset_index(drop = True)
 #important to convert the comma to decimal for python to interpret it as a floating point
 #convert the strings to floating point to sort the column for plotting
 df2['Reletive Position'] = df2['Reletive Position'].str.replace(',','.').astype(float)
-df2 = df2.drop([0, 1, 2, 15])
+#drop rows with information about the long runs. 
+df2 = df2.drop(df2[df2['Force File Name'].str.contains('LR')].index)
 df2 = df2.sort_values('Reletive Position')
+
+
+
 #plot Reletive Position against Cp
 error_Cp = df2['Cp sigma']
+fig2 = plt.figure()
+ax1 = fig2.add_subplot(111)
+ax2 = ax1.twiny()
+eb1 = ax1.errorbar(df2['Reletive Position']/724, df2['Cp mean'], error_Cp, fmt = 'o',  color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
+eb1[-1][0].set_linestyle('--')
+eb2 = ax2.errorbar(df2['Reletive Position'], df2['Cp mean'], error_Cp, fmt = 'o',  color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
+eb2[-1][0].set_linestyle('--')
+ax1.set_xticks(np.linspace(np.min(df2['Reletive Position']/724), np.max(df2['Reletive Position']/724), 10))
+ax1.set_ylabel(r'$C_p$')
+
+plt.show()
+
+
+a, b = 9, 10
+print(a & b)#line 1
+print(a and b)#line 2
+
+'''
 
 #plot Cp
-eb1 = plt.errorbar(df2['Reletive Position'], df2['Cp mean'], error_Cp, fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax2 = ax1.twiny()
+eb1 = ax1.errorbar(df2['Reletive Position']/724, df2['Cp mean'], error_Cp, fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
 eb1[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines
-plt.ylabel(r'$C_p$')
-plt.xlabel('Position (mm) from Rotor')
+ax2.set_xticks(df2['Reletive Position'])
+ax1.set_ylabel(r'$C_p$')
+ax1.set_xlabel('Normalised Distance from Rotor $\frac{Dist}{Dia}$')
+ax2.set_xlabel('Position (mm) from Rotor')
 plt.title('TSR 4.0, Vel = 1 m/s')
-plt.grid()
+ax1.grid(True)
+ax2.grid(False)
+plt.show()
 plt.savefig('Results/Performance Coefficients/TSR4/Cp.png', dpi = 1200)
 plt.close()
-
+'''
 #Plot Ct
-eb2 = plt.errorbar(df2['Reletive Position'], df2['Ct mean'], df2['Ct sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb2 = plt.errorbar(df2['Reletive Position'], df2['Ct mean'], df2['Ct sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
 eb2[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines
 plt.ylabel(r'$C_t$')
 plt.xlabel('Position (mm) from Rotor')
@@ -62,7 +91,7 @@ plt.close()
 
 
 #plot torque against 
-eb3 = plt.errorbar(df2['Reletive Position'], df2['Torque_mean'], df2['Torque sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb3 = plt.errorbar(df2['Reletive Position'], df2['Torque_mean'], df2['Torque sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
 eb3[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines
 plt.ylabel('Torque (N/m)')
 plt.xlabel('Position (mm) from Rotor')
@@ -81,7 +110,7 @@ plt.savefig('Results/Performance Coefficients/TSR4/Torque Standard Deviation.png
 plt.close()
 
 #plot thrust against  
-eb4 = plt.errorbar(df2['Reletive Position'], df2['Thrust_mean'], df2['Thrust sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb4 = plt.errorbar(df2['Reletive Position'], df2['Thrust_mean'], df2['Thrust sigma'], fmt = 'o', color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
 eb4[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines)
 plt.ylabel('Thrust (N)')
 plt.xlabel('Position (mm) from Rotor')
@@ -101,11 +130,11 @@ plt.close()
 
 
 #plot My for the three blades with error bars
-eb5 = plt.errorbar(df2['Reletive Position'], df2['My1 mean'], df2['My1 sigma'], label = 'My1', fmt = 'ro', color = 'red', ecolor = 'gray', elinewidth=1, capsize=0)
+eb5 = plt.errorbar(df2['Reletive Position'], df2['My1 mean'], df2['My1 sigma'], label = 'My1', fmt = 'ro', color = 'red', ecolor = 'gray', elinewidth=1, capsize=10)
 eb5[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines))
-eb6 = plt.errorbar(df2['Reletive Position'], df2['My2 mean'], df2['My2 sigma'], label = 'My2' , fmt = 'bo', color = 'black', ecolor = 'gray', elinewidth=1, capsize=0)
+eb6 = plt.errorbar(df2['Reletive Position'], df2['My2 mean'], df2['My2 sigma'], label = 'My2' , fmt = 'bo', color = 'black', ecolor = 'gray', elinewidth=1, capsize=10)
 eb6[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines))
-eb7 = plt.errorbar(df2['Reletive Position'], df2['My3 mean'], df2['My3 sigma'], label = 'My3', fmt = 'go', color = 'green', ecolor = 'gray', elinewidth=1, capsize=0)
+eb7 = plt.errorbar(df2['Reletive Position'], df2['My3 mean'], df2['My3 sigma'], label = 'My3', fmt = 'go', color = 'green', ecolor = 'gray', elinewidth=1, capsize=10)
 eb7[-1][0].set_linestyle('--') #eb1[-1][0] is the LineCollection objects of the errorbar lines))
 plt.ylabel('Torque N/m')
 plt.xlabel('Position (mm) from Rotor')
