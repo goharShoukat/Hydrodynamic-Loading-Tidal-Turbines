@@ -185,6 +185,23 @@ def angle_theta(df, content):
     fit_df = pd.DataFrame({'theta_s': theta_s, 'Average': fx_s})
     return angle_df_sorted, fit_df
 
+from sklearn.preprocessing import scale
+def polar_chart(df, content):
+    angle, fit= angle_theta(df, content)
+    fig = plt.figure()
+    ax = fig.add_subplot(111,position=[0.10, 0.10, 0.70, 0.70], projection='polar')
+    scale(angle['signal'], with_mean=True, with_std= True, copy = False)
+    scale(fit['Average'], with_mean=True, with_std=True, copy = False)
+    ax.scatter(angle['theta'], angle['signal'], s=0.01)
+    #ax.plot(fit['theta_s'], fit['Average'])
+    ax.set_title('Varation against Blade Angle')
+    ax.set_rlabel_position(90)
+    ax.set_theta_zero_location("N")  # theta=0 at the top
+    ax.set_theta_direction(-1)  # theta increasing clockwise
+    locator = np.linspace(np.min(angle['signal']), np.max(angle['signal']), 4)
+    #ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+    ax.set_yticks(locator)
+
 # %% Calculation of Mean at each degree
 
 def fitting(signal_, theta, plot = False):
@@ -213,5 +230,9 @@ def limits_polar_plot(series):
 
 file = '/Users/goharshoukat/Documents/GitHub/Thesis_Tidal_Turbine/essais_ifremer_04_2021_backup/2021_04_hydrol_ECN/run159.txt'
 df, _ = access_file(file)
-angle, _ = angle_theta(df, 'Couple')
-plt.plot(angle['theta'], angle['signal'])
+#angle, _ = angle_theta(df, 'Fx1')
+#angle['signal with'] = scale(angle['signal'], with_mean=True, with_std= True, copy = True)
+#angle['signal without'] = scale(angle['signal'], with_mean=True, with_std= False, copy = True)
+#plt.plot(angle['theta'], angle['signal'])
+#angle['result'] = angle['signal with'] - angle['signal without']
+polar_chart(df, 'Fx1')
