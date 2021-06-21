@@ -37,7 +37,7 @@ def logmovav(s1, s2, xdata, ydata):
     nn = n2 - n1 + 1 #number of elements after processed array
     
     #create the array of span values for the moving average computation
-    Spans = np.logspace(np.log10(s1), np.log10(s2), nn)
+    Spans = np.logspace(np.log10(s1), np.log10(s2), int(nn))
     
     #convert all the elements of Spans to the nearest odd integer
     idx = Spans%2<1
@@ -48,10 +48,10 @@ def logmovav(s1, s2, xdata, ydata):
     
     #carries out the moving average filtering
     Fydata = np.zeros(int(nn))
-    for kk in range(int(nn)):
+    for kk in range(0,int(nn)):
         ind= n1 + kk - 1
         Fydata[kk] = np.sum(ydata[int(ind - dSpans[kk]):int(ind + dSpans[kk])]/ Spans[kk])
         
-    Fxdata = xdata[n1:n2]
+    Fxdata = xdata[int(n1):int(n2)]
     
     return Fxdata, Fydata, Spans

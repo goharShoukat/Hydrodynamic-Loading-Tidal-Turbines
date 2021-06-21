@@ -15,6 +15,7 @@ import os
 import pickle
 import stats_lib
 from csaps import csaps
+from logmovav import logmovav
 
 #%%
 '''
@@ -93,12 +94,18 @@ def spectral_analysis(df, column, bins = False):
         timestep = df.index[1]
     else:
         timestep = df.index[1]
+        
     sampling_freq = 1/timestep
     spec = stats_lib.fft(df[column].to_numpy(), int(sampling_freq), int(bins))
     frequency = np.fft.fftfreq(int(bins), d=timestep)
 
-    return spec, frequency
-
+    #call on the smoothing function. pass on the spectral analysis values
+    s1 = (5) #define the first moving average window. these are hard coded into the program. future versions of the dashboard, we can adjust this. 
+    s2 = (69) #define the second moving average window. 
+    Fxdata, Fydata, Spans = logmovav(s1, s2, frequency, spec)
+    
+    #return spec, frequency
+    return Fydata, Fxdata
 #function to cacluate rotor frequency to normalise fft
 def rotor_freq(ser):
     return ser.mean()/60
