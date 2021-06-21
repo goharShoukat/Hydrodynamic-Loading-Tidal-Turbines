@@ -62,19 +62,7 @@ def access_file(file):
     #df['Fx'] = -df['Fx']
     try: df['Couple'] = -df['Couple']
     except: df['Torque'] = -df['Torque']
-    '''
-    df['Fy1'] = df['Fy1']
-    df['Mx1'] = df['Mx1']
-    df['My1'] = df['My1']
-    df['Fy2'] = df['Fy2']
-    df['Mx2'] = df['Mx2']
-    df['My2'] = df['My2']
-    df['Fy3'] = df['Fy3']
-    df['Mx3'] = df['Mx3']
-    df['My3'] = df['My3']
-    #df['My'] = -df['My']
-    '''
-    
+
     return df, units
 
 def read_freq(file):
@@ -228,11 +216,11 @@ def limits_polar_plot(series):
 
 # %% test
 
-file = '/Users/goharshoukat/Documents/GitHub/Thesis_Tidal_Turbine/essais_ifremer_04_2021_backup/2021_04_hydrol_ECN/run159.txt'
-df, _ = access_file(file)
+#file = '/Users/goharshoukat/Documents/GitHub/Thesis_Tidal_Turbine/essais_ifremer_04_2021_backup/2021_04_hydrol_ECN/run159.txt'
+#df, _ = access_file(file)
 #angle, _ = angle_theta(df, 'Fx1')
 #angle['signal with'] = scale(angle['signal'], with_mean=True, with_std= True, copy = True)
 #angle['signal without'] = scale(angle['signal'], with_mean=True, with_std= False, copy = True)
 #plt.plot(angle['theta'], angle['signal'])
 #angle['result'] = angle['signal with'] - angle['signal without']
-polar_chart(df, 'Fx1')
+#polar_chart(df, 'Fx1')
