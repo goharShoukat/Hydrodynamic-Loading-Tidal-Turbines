@@ -15,7 +15,7 @@ import os
 import pickle
 import stats_lib
 from csaps import csaps
-from logmovav import logmovav
+from Dashboard.logmovav import logmovav
 
 #%%
 '''
@@ -195,6 +195,22 @@ def angle_theta(df, content):
     fit_df = pd.DataFrame({'theta_s': theta_s, 'Average': fx_s})
     return angle_df_sorted, fit_df
 
+def angle_theta_binning(df, content, bins = 360):
+    t = df.index
+    Fy1 = df['Fy1'].to_numpy()
+    Fy2 = df['Fy2'].to_numpy()
+    Fy3 = df['Fy3'].to_numpy()
+    fr = rotor_freq(df['RPM'])
+    angle_theta = angle_turbine(t, Fy1, Fy2, Fy3, fr)
+
+    newdf = pd.DataFrame({'theta':np.rad2deg(angle_theta['theta']), 'signal': df[content]})
+    angle_df_sorted = newdf.sort_values(by = 'theta')
+    binned_df = pd.cut(angle_df_sorted.theta, bins)
+    averaged_binned_df = angle_df_sorted.groupby(binned_df).mean()
+
+    return angle_df_sorted, averaged_binned_df
+    
+    
 from sklearn.preprocessing import scale
 def polar_chart(df, content):
     angle, fit= angle_theta(df, content)
