@@ -5,7 +5,7 @@ Created on Thu Mar 18 09:42:23 2021
 
 @author: goharshoukat
 """
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -31,24 +31,24 @@ def access_file(file):
     #renaming first column header
     try: df = df.rename({'#rpm': 'RPM'}, axis=1)
     except: df = df.rename({'#RPM': 'RPM'}, axis=1)
-    
+
     #removing the hash sign and renaming the dataframe index, important for plotting grapsh
     try: units['#rpm'] = 'RPM'
     except: units['#RPM'] = 'RPM'
-    
-    try: units = units.rename({'#rpm': 'RPM'}) 
+
+    try: units = units.rename({'#rpm': 'RPM'})
     except: units = units.rename({'#RPM': 'RPM'})
     #all column heads are stored to recreate proper columns
     col_head = list(df.columns)
     #the data series is throwing an exception that the data is not numeric
-    #the following for loop converts the entire dataframe to numeric which 
+    #the following for loop converts the entire dataframe to numeric which
     #can then be plotted
     for i in range(len(df.columns)):
         x = pd.to_numeric(df[col_head[i]])
         df = df.drop(columns=[col_head[i]])
         df.insert(i, col_head[i], x)
         del x
-    
+
     sampling_freq = read_freq(file)
     no_of_meas = len(df)
        # create time arra
@@ -87,6 +87,28 @@ def stats(ser):
     return std_val, mean_val, max_val, min_val
 
 def spectral_analysis(df, column, bins = False):
+
+    if bins == 'Default':
+
+        bins = len(df)
+        timestep = df.index[1]
+    else:
+        timestep = df.index[1]
+
+    sampling_freq = 1/timestep
+    spec = stats_lib.fft(df[column].to_numpy(), int(sampling_freq), int(bins))
+    frequency = np.fft.fftfreq(int(bins), d=timestep)
+
+    #call on the smoothing function. pass on the spectral analysis values
+    s1 = (5) #define the first moving average window. these are hard coded into the program. future versions of the dashboard, we can adjust this.
+    s2 = (69) #define the second moving average window.
+    Fxdata, Fydata, Spans = logmovav(s1, s2, frequency, spec)
+
+    #return spec, frequency
+    return Fydata, Fxdata
+
+#noise spectral analysis
+def spectral_analysis_noisy(df, column, bins = False):
     
     if bins == 'Default':
         
@@ -94,18 +116,11 @@ def spectral_analysis(df, column, bins = False):
         timestep = df.index[1]
     else:
         timestep = df.index[1]
-        
     sampling_freq = 1/timestep
     spec = stats_lib.fft(df[column].to_numpy(), int(sampling_freq), int(bins))
     frequency = np.fft.fftfreq(int(bins), d=timestep)
 
-    #call on the smoothing function. pass on the spectral analysis values
-    s1 = (5) #define the first moving average window. these are hard coded into the program. future versions of the dashboard, we can adjust this. 
-    s2 = (69) #define the second moving average window. 
-    Fxdata, Fydata, Spans = logmovav(s1, s2, frequency, spec)
-    
-    #return spec, frequency
-    return Fydata, Fxdata
+    return spec, frequency
 #function to cacluate rotor frequency to normalise fft
 def rotor_freq(ser):
     return ser.mean()/60
@@ -119,7 +134,7 @@ def filtrage(t,x,fc,filter_type):
     n = len(x)
     #not clear on why n-1 is used
     delta_f = fe/(n-1)
-    #np.arrange does not work well with non-integer values and hence the error in this funciton with the mismatch in length. 
+    #np.arrange does not work well with non-integer values and hence the error in this funciton with the mismatch in length.
     #replacing this with linspace resolves the error
     #f = np.arange(-fe/2, fe/2+delta_f, delta_f)
     #low pass filter
@@ -130,9 +145,9 @@ def filtrage(t,x,fc,filter_type):
     ind1 = abs(f) < f1
     ind2 = abs(f) > f2
     ind = (ind1 + ind2)
-    
+
     ind = np.fft.fftshift(ind)
-    fftx = np.fft.fft(x)  
+    fftx = np.fft.fft(x)
 
     fftx[ind == True] = 0
     xf = np.real(np.fft.ifft(fftx))
@@ -140,15 +155,15 @@ def filtrage(t,x,fc,filter_type):
 # %% Anglue Turbine
 
 def angle_turbine(t, Fy1, Fy2, Fy3, fr):
-        
+
     f1 = fr - 0.2
     f2 = fr + 0.2
-    
+
 
     Fy1=filtrage(t,Fy1-np.mean(Fy1),[f1, f2],3)
     Fy2=filtrage(t,Fy2-np.mean(Fy2),[f1, f2],3)
-    Fy3=filtrage(t,Fy3-np.mean(Fy3),[f1, f2],3)    
-    
+    Fy3=filtrage(t,Fy3-np.mean(Fy3),[f1, f2],3)
+
     theta1=np.unwrap(np.arctan2((+np.sqrt(3)*Fy1),(Fy1+2*Fy2)))
     theta2=np.unwrap(np.arctan2(-(-np.sqrt(3)*Fy1),-(Fy1+2*Fy3)))
     theta3=np.unwrap(np.arctan2((-np.sqrt(3)*(Fy2+Fy3)),(Fy2-Fy3)))
@@ -162,7 +177,7 @@ def angle_turbine(t, Fy1, Fy2, Fy3, fr):
     return df
 
 #content is reference to the signal seletion made by the user.
-#since the entire df is passed, one particular signal type needs to be chosen 
+#since the entire df is passed, one particular signal type needs to be chosen
 def angle_theta(df, content):
     t = df.index
     Fy1 = df['Fy1'].to_numpy()
@@ -172,7 +187,7 @@ def angle_theta(df, content):
     angle_theta = angle_turbine(t, Fy1, Fy2, Fy3, fr)
     #plt.scatter(angle_theta['theta'], df[content], s= 0.01)
     newdf = pd.DataFrame({'theta':angle_theta['theta'], 'signal': df[content]})
-    
+
     angle_df_sorted = newdf.sort_values(by = 'theta')
     theta_s = np.arange(-np.pi, np.pi, np.pi/len(newdf))
     fx_s = csaps(angle_df_sorted['theta'], angle_df_sorted['signal'], theta_s, smooth = .95)
@@ -200,12 +215,12 @@ def polar_chart(df, content):
 # %% Calculation of Mean at each degree
 
 def fitting(signal_, theta, plot = False):
-    
+
     theta_s = np.arange(-np.pi, np.pi, np.pi/len(signal_))
     newdf= pd.DataFrame({'theta': theta, 'signal': signal_})
     newdf = newdf.sort_values(by = 'theta')
     avg = csaps(theta, signal, theta_s, smooth = .95)
-    
+
     if plot == True:
         plt.scatter(np.rad2deg(newdf['theta']), newdf['signal'], s =0.01)
         plt.plot(np.rad2deg(theta_s), avg)
