@@ -184,13 +184,13 @@ def angle_theta(df, content):
     Fy2 = df['Fy2'].to_numpy()
     Fy3 = df['Fy3'].to_numpy()
     fr = rotor_freq(df['RPM'])
-    angle_theta = angle_turbine(t, Fy1, Fy2, Fy3, fr)
+    angle = angle_turbine(t, Fy1, Fy2, Fy3, fr)
     #plt.scatter(angle_theta['theta'], df[content], s= 0.01)
-    newdf = pd.DataFrame({'theta':angle_theta['theta'], 'signal': df[content]})
+    newdf = pd.DataFrame({'theta':angle['theta'], 'signal': df[content]})
 
     angle_df_sorted = newdf.sort_values(by = 'theta')
     theta_s = np.arange(-np.pi, np.pi, np.pi/len(newdf))
-    fx_s = csaps(angle_df_sorted['theta'], angle_df_sorted['signal'], theta_s, smooth = .95)
+    fx_s = csaps(angle_df_sorted['theta'], angle_df_sorted['signal'], theta_s, smooth = .9)
     #plt.plot(theta_s, fx_s)
     fit_df = pd.DataFrame({'theta_s': theta_s, 'Average': fx_s})
     return angle_df_sorted, fit_df
@@ -201,9 +201,9 @@ def angle_theta_binning(df, content, bins = 360):
     Fy2 = df['Fy2'].to_numpy()
     Fy3 = df['Fy3'].to_numpy()
     fr = rotor_freq(df['RPM'])
-    angle_theta = angle_turbine(t, Fy1, Fy2, Fy3, fr)
+    angle = angle_turbine(t, Fy1, Fy2, Fy3, fr)
 
-    newdf = pd.DataFrame({'theta':np.rad2deg(angle_theta['theta']), 'signal': df[content]})
+    newdf = pd.DataFrame({'theta':(angle['theta']), 'signal': df[content]})
     angle_df_sorted = newdf.sort_values(by = 'theta')
     binned_df = pd.cut(angle_df_sorted.theta, bins)
     averaged_binned_df = angle_df_sorted.groupby(binned_df).mean()
@@ -212,21 +212,52 @@ def angle_theta_binning(df, content, bins = 360):
     
     
 from sklearn.preprocessing import scale
-def polar_chart(df, content):
+def polar_chart(df, content, normalise = False):
     angle, fit= angle_theta(df, content)
-    fig = plt.figure()
+    if normalise == True:
+        scale(angle['signal'], with_mean=True, with_std= True, copy = False)
+        scale(fit['Average'], with_mean=True, with_std=True, copy = False)
+    
+    
+    fig = plt.figure(figsize = (60,60))
     ax = fig.add_subplot(111,position=[0.10, 0.10, 0.70, 0.70], projection='polar')
-    scale(angle['signal'], with_mean=True, with_std= True, copy = False)
-    scale(fit['Average'], with_mean=True, with_std=True, copy = False)
-    ax.scatter(angle['theta'], angle['signal'], s=0.01)
-    #ax.plot(fit['theta_s'], fit['Average'])
-    ax.set_title('Varation against Blade Angle')
+    #plt.autoscale(axis = 'both', tight = 'bool')
+            #pass values to the function angle_turbine
     ax.set_rlabel_position(90)
     ax.set_theta_zero_location("N")  # theta=0 at the top
-    ax.set_theta_direction(-1)  # theta increasing clockwise
-    locator = np.linspace(np.min(angle['signal']), np.max(angle['signal']), 4)
-    #ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-    ax.set_yticks(locator)
+    ax.set_theta_direction(-1) 
+    ax.yaxis.set_major_locator(plt.MaxNLocator(3))
+    ax.scatter(angle['theta'], angle['signal'], s=0.01)
+    #ax.scatter(angle_binned['theta'], angle_binned['signal'], s=0.01)
+    ax.plot(fit['theta_s'], fit['Average'], color = 'red')
+    #ax.plot(np.deg2rad(average_binned['theta']), average_binned['signal'], color = 'red')
+            #self.ax4.set_ylim(min(angle['signal'])-1, max(angle['signal']+0.5))
+            #half the samples are plotted to avoid clutter
+    
+    
+            #self.ax4.scatter(self.theta, self.y_new, s = 0.5, alpha = 1)
+    ax.set_title('Varation against Blade Angle')
+
+#this function uses the angle_theta_binning
+def polar_chart_binning(df, content, normalise = False):
+    angle, average_binned= angle_theta_binning(df, content)
+    if normalise == True:
+        scale(angle['signal'], with_mean=True, with_std= True, copy = False)
+        scale(average_binned['signal'], with_mean=True, with_std=True, copy = False)
+
+    fig2 =plt.figure(figsize = (60,60))
+    ax1 = fig2.add_subplot(111,position=[0.10, 0.10, 0.70, 0.70], projection='polar')
+    ax1.set_rlabel_position(90)
+    ax1.set_theta_zero_location("N")  # theta=0 at the top
+    ax1.set_theta_direction(-1) 
+    #ax1.set_ylabel(content + '(' + units[content] +')', rotation=)
+    ax1.yaxis.set_major_locator(plt.MaxNLocator(3))
+    ax1.scatter(angle['theta'], angle['signal'], s=0.01)
+    ax1.plot((average_binned['theta']), average_binned['signal'], color = 'red')
+    ax1.set_title('Varation against Blade Angle')
+    
+
+
 
 # %% Calculation of Mean at each degree
 
